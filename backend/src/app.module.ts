@@ -9,10 +9,10 @@ import { AppController } from './app.controller';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot({
-      ttl: 60,
+    ThrottlerModule.forRoot([{
+      ttl: 60000,
       limit: 50,
-    }),
+    }]),
     UserModule,
     AuthModule,
     MailSenderModule,
