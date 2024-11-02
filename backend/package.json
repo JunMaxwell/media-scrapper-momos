@@ -31,7 +31,8 @@
     "prisma:generate": "npx prisma generate",
     "prisma:generate:watch": "npx prisma generate --watch",
     "postinstall": "npm run prisma:generate",
-    "seed": "dotenv -e env/local.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts"
+    "seed:dev": "dotenv -e env/local.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts",
+    "seed:prod": "dotenv -e env/production.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts"
   },
   "lint-staged": {
     "*.{js,ts}": [
