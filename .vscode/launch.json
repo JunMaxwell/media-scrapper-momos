@@ -1,0 +1,42 @@
+{
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Debug Nest Framework",
+            "args": [
+                "${workspaceFolder}/backend/src/main.ts"
+            ],
+            "runtimeArgs": [
+                "--nolazy",
+                "-r",
+                "ts-node/register",
+                "-r",
+                "tsconfig-paths/register"
+            ],
+            "sourceMaps": true,
+            "cwd": "${workspaceRoot}/backend",
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch UI",
+            "program": "${workspaceFolder}/ui/src/app/index.js",
+            "args": [
+                "--serve"
+            ]
+        }
+    ],
+    "inputs": [
+        {
+            "type": "promptString",
+            "id": "backendProgramPath",
+            "description": "Enter the path to the backend main file"
+        },
+        {
+            "type": "promptString",
+            "id": "uiProgramPath",
+            "description": "Enter the path to the UI main file"
+        }
+    ]
+}

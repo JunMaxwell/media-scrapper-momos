@@ -2,9 +2,13 @@
   "name": "media-scrapper",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev:ui": "cd ui && npm run dev",
     "dev:be": "cd backend && npm run start:dev",
+    "debug:be": "cd backend && npm run start:debug",
     "build:ui": "cd ui && npm run build",
     "build:be": "cd backend && npm run build",
     "build:all": "npm run build:ui && npm run build:be",

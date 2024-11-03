@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   // CORS is enabled
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, { cors: true, logger: ['error', 'warn', 'log', 'debug', 'verbose'] });
   const configService = app.get(ConfigService);
   const port = configService.get('PORT') || 8080;
   // Request Validation

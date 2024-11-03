@@ -7,6 +7,7 @@ import { MailSenderModule } from './mail-sender/mail-sender.module';
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
+import { ScraperModule } from './scraper/scraper.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ConfigModule } from '@nestjs/config';
     UserModule,
     AuthModule,
     MailSenderModule,
+    ScraperModule,
   ],
   providers: [
     {
