@@ -4,6 +4,10 @@
   "description": "Simple nestjs backend.",
   "author": "Jun Maxwell",
   "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json",
     "clean": "rimraf dist",
@@ -11,7 +15,7 @@
     "start": "dotenv -e env/local.env -- nest start",
     "start:dev": "dotenv -e env/local.env -- nest start --watch",
     "start:debug": "dotenv -e env/local.env -- nest start --debug --watch",
-    "start:prod": "dotenv -e env/production.env -- node dist/main",
+    "start:prod": "dotenv -e env/production.env -- node dist/src/main",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "test": "dotenv -e env/test.env -- jest",
     "test:watch": "dotenv -e env/test.env -- jest --watch",
@@ -30,9 +34,10 @@
     "prisma:studio:dev": "dotenv -e env/local.env npx prisma studio",
     "prisma:generate": "npx prisma generate",
     "prisma:generate:watch": "npx prisma generate --watch",
-    "postinstall": "npm run prisma:generate",
     "seed:dev": "dotenv -e env/local.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts",
-    "seed:prod": "dotenv -e env/production.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts"
+    "seed:prod": "dotenv -e env/production.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts",
+    "docker:build": "docker build -t backend-app .",
+    "docker:run": "docker run -p 8080:8080 --env-file env/local.env backend-app"
   },
   "lint-staged": {
     "*.{js,ts}": [

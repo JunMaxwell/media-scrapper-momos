@@ -12,7 +12,13 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
-    "allowJs": true
+    "allowJs": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "paths": {
+      "src/*": ["./src/*"]
+    }
   },
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import puppeteer from 'puppeteer-core';
 import { ScraperResponse } from './models/scraper.response';
-import { PrismaService } from 'src/common/services/prisma.service';
-import { AuthUser } from 'src/auth/auth-user'; // Import AuthUser
+import { PrismaService } from '../common/services/prisma.service';
+import { AuthUser } from '../auth/auth-user';
 
 @Injectable()
 export class ScraperService {

@@ -8,6 +8,7 @@ import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-prox
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { ScraperModule } from './scraper/scraper.module';
+import { PrismaModule } from './common/services/prisma.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ScraperModule } from './scraper/scraper.module';
     }),
     UserModule,
     AuthModule,
+    PrismaModule,
     MailSenderModule,
     ScraperModule,
   ],
