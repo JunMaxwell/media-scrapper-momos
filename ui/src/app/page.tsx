@@ -1,11 +1,21 @@
 'use client'
 
-import { useState } from 'react'
-import { PlusCircle, Trash2, AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useSession, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { PlusCircle, Trash2, AlertCircle, LogOut } from 'lucide-react'
 
 export default function Home() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
   const [urls, setUrls] = useState([''])
   const [errors, setErrors] = useState<string[]>([])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
 
   const addUrlField = () => {
     setUrls([...urls, ''])
@@ -45,10 +55,33 @@ export default function Home() {
     // Here you would typically send the data to your API
   }
 
+  if (status === 'loading') {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+  }
+
+  if (status === 'unauthenticated') {
+    return <div className="min-h-screen flex items-center justify-center">Redirecting to login...</div>
+  }
+
+  if (!session) {
+    router.push('/login');
+    return null
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center text-gray-900">Media Scraper</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Media Scraper</h1>
+          <button
+            onClick={() => signOut()}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-white text-gray-900 border border-gray-900 hover:bg-gray-900 hover:text-white h-10 py-2 px-4"
+          >
+            <LogOut size={16} className="mr-2" />
+            Sign out
+          </button>
+        </div>
+        <p className="text-center mb-6">Welcome, {session?.user?.username || 'User'}!</p>
         <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-lg border border-gray-200 px-8 pt-6 pb-8 mb-4">
           {urls.map((url, index) => (
             <div key={index} className="mb-4">
@@ -71,7 +104,7 @@ export default function Home() {
                     onClick={() => removeUrlField(index)}
                     className="ml-2 text-gray-500 hover:text-gray-700 focus:outline-none"
                     aria-label={`Remove URL at position ${index + 1}`}
-                    >
+                  >
                     <Trash2 size={20} />
                   </button>
                 )}

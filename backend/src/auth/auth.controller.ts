@@ -64,7 +64,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
-    return new LoginResponse(await this.authService.login(loginRequest));
+    return this.authService.login(loginRequest);
   }
 
   @ApiBearerAuth()
