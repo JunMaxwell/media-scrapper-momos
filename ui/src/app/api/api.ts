@@ -56,3 +56,13 @@ export const submitUrls = async (urls: string[]): Promise<ApiResponse<ScraperRes
     throw new Error('An unexpected error occurred');
   }
 };
+
+export const fetchMedias = async (): Promise<ApiResponse<ScraperResponse[]>> => {
+  try {
+    const response: ApiResponse<ScraperResponse[]> = await api.get('/scraper/medias');
+    return response;
+  } catch (error) {
+    console.error('Fetch medias error:', error);
+    throw new Error('An unexpected error occurred');
+  }
+};

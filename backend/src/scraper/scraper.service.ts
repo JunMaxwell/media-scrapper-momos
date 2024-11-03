@@ -10,7 +10,7 @@ export class ScraperService {
     constructor(
         private readonly configService: ConfigService,
         private prismaService: PrismaService,
-    ) {}
+    ) { }
 
     /**
      * Given an array of urls, scrape the media from each url
@@ -64,7 +64,7 @@ export class ScraperService {
                         },
                     });
                 }
-                
+
                 allMedias.push(...pageMedias);
             }
             return allMedias;
@@ -73,6 +73,29 @@ export class ScraperService {
             throw new Error(error);
         } finally {
             await browser.close();
+        }
+    }
+
+    /**
+     * Fetch media of user
+     * @param user: Authenticated user
+     * @returns Scraper response array
+     */
+    async fetchMedias(user: AuthUser): Promise<ScraperResponse[]> {
+        try {
+            const medias = await this.prismaService.media.findMany({
+                where: {
+                    userId: user.id,
+                },
+            });
+
+            return medias.map((media) => ({
+                type: media.type,
+                src: media.src,
+            }));
+        } catch (error) {
+            Logger.error(error);
+            throw new Error(error);
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Get } from '@nestjs/common';
 import { ScraperService } from './scraper.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -14,6 +14,17 @@ export class ScraperController {
     const user = req.user as AuthUser;
     try {
       return await this.scraperService.getMediasFromUrls(urls, user);
+    } catch (error) {
+      return new Error(error);
+    }
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('medias')
+  async getMedias(@Req() req: Request) {
+    const user = req.user as AuthUser;
+    try {
+      return await this.scraperService.fetchMedias(user);
     } catch (error) {
       return new Error(error);
     }

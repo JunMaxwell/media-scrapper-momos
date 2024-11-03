@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { PlusCircle, Trash2, AlertCircle, LogOut } from 'lucide-react'
-import { submitUrls } from './api/api'
+import { PlusCircle, Trash2, AlertCircle, LogOut, RefreshCw } from 'lucide-react'
+import { submitUrls, fetchMedias } from './api/api'
 import Image from 'next/image'
 import { ImageLoaderProps } from 'next/image'
 import { ScraperResponse } from '@/app/types/api.type'
@@ -21,12 +21,27 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<string | null>(null)
   const [scrapedMedia, setScrapedMedia] = useState<ScraperResponse[]>([])
+  const [isFetchingMedias, setIsFetchingMedias] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/login')
+    } else if (status === 'authenticated') {
+      fetchUserMedias()
     }
   }, [status, router])
+
+  const fetchUserMedias = async () => {
+    setIsFetchingMedias(true)
+    try {
+      const medias = await fetchMedias()
+      setScrapedMedia(medias.data)
+    } catch (error) {
+      console.error('Failed to fetch medias:', error)
+    } finally {
+      setIsFetchingMedias(false)
+    }
+  }
 
   const addUrlField = () => {
     setUrls([...urls, ''])
@@ -69,13 +84,12 @@ export default function Home() {
 
     setIsSubmitting(true)
     setSubmitResult(null)
-    setScrapedMedia([])
 
     try {
       const result = await submitUrls(validUrls)
       setSubmitResult(`Successfully scraped ${validUrls.length} URL(s)`)
-      // Assuming the API returns an array of ScraperResponse
-      setScrapedMedia(result.data)
+      // Fetch updated medias after successful submission
+      await fetchUserMedias()
       // Optionally, clear the form or keep only one empty field
       setUrls([''])
       setErrors([''])
@@ -171,9 +185,21 @@ export default function Home() {
             {submitResult}
           </div>
         )}
-        {scrapedMedia.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Scraped Media</h2>
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">Your Scraped Media</h2>
+            <button
+              onClick={fetchUserMedias}
+              disabled={isFetchingMedias}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background bg-white text-gray-900 border border-gray-900 hover:bg-gray-900 hover:text-white h-10 py-2 px-4"
+            >
+              <RefreshCw size={16} className={`mr-2 ${isFetchingMedias ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
+          {isFetchingMedias ? (
+            <div className="text-center">Loading medias...</div>
+          ) : scrapedMedia.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {scrapedMedia.map((media, index) => (
                 <div key={index} className="border rounded-lg p-2">
@@ -206,8 +232,10 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center text-gray-500">No media scraped yet. Try submitting some URLs!</div>
+          )}
+        </div>
       </div>
     </main>
   )
