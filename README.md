@@ -10,6 +10,11 @@ First clone this repository
 npm run docker:up
 ```
 
+- Seed the database with some data by running the following command in the root directory of the project, after the project has started
+```bash
+npm run seed
+```
+
 ## Stopping the project
 - To stop the project, run the following command in the root directory of the project
 ```bash

@@ -25,8 +25,7 @@
     "migrate:deploy:dev": "cd backend && npm run migrate:deploy:dev",
     "migrate:status": "cd backend && npm run migrate:status",
     "migrate:resolve": "cd backend && npm run migrate:resolve",
-    "seed:dev": "cd backend && npm run seed:dev",
-    "seed:prod": "cd backend && npm run seed:prod",
+    "seed": "cd backend && npm run seed:dev",
     "docker:up": "docker-compose up --build",
     "docker:down": "docker-compose down"
   },
