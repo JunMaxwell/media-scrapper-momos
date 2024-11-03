@@ -3,8 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { PlusCircle, Trash2, AlertCircle, LogOut, RefreshCw, Filter, Search, ChevronLeft, ChevronRight } from 'lucide-react'
-import { submitUrls, fetchMedias } from './api/api'
+import { PlusCircle, Trash2, AlertCircle, LogOut, RefreshCw, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { submitUrls, fetchMedias, checkQueueStatus } from './api/api'
 import Image from 'next/image'
 import { ImageLoaderProps } from 'next/image'
 import { ScraperResponse } from '@/app/types/api.type'
@@ -14,6 +14,7 @@ const customLoader = ({ src }: ImageLoaderProps) => {
 }
 
 const ITEMS_PER_PAGE = 12
+const QUEUE_CHECK_INTERVAL = 5000 // 5 seconds
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -28,15 +29,32 @@ export default function Home() {
   const [selectedType, setSelectedType] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [queueStatus, setQueueStatus] = useState<{ completedJobs: number, totalJobs: number } | null>(null)
 
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    } else if (status === 'authenticated') {
-      fetchUserMedias()
+useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (queueStatus && queueStatus.completedJobs < queueStatus.totalJobs) {
+      intervalId = setInterval(checkQueue, QUEUE_CHECK_INTERVAL);
     }
-  }, [status, router])
 
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [queueStatus]);
+
+  const checkQueue = async () => {
+    try {
+      const status = await checkQueueStatus();
+      setQueueStatus(status.data);
+      if (status.data.completedJobs === status.data.totalJobs) {
+        fetchUserMedias();
+      }
+    } catch (error) {
+      console.error('Failed to check queue status:', error);
+    }
+  };
+  
   const fetchUserMedias = async () => {
     setIsFetchingMedias(true)
     try {
@@ -90,11 +108,16 @@ export default function Home() {
 
     setIsSubmitting(true)
     setSubmitResult(null)
+    setQueueStatus(null)
 
     try {
       const result = await submitUrls(validUrls)
-      setSubmitResult(`Successfully scraped ${validUrls.length} URL(s)`)
-      await fetchUserMedias()
+      setSubmitResult(result.data.message)
+      if (result.data.message === 'Scraping jobs queued') {
+        checkQueue() // Start checking queue status immediately
+      } else {
+        await fetchUserMedias()
+      }
       setUrls([''])
       setErrors([''])
     } catch (error) {
@@ -103,6 +126,7 @@ export default function Home() {
       setIsSubmitting(false)
     }
   }
+
 
   const mediaByDomain = useMemo(() => {
     const groupedMedia: { [key: string]: ScraperResponse[] } = {}
@@ -224,6 +248,11 @@ export default function Home() {
             {submitResult}
           </div>
         )}
+        {queueStatus && (
+          <div className="mt-4 p-4 rounded-md bg-blue-100 text-blue-700">
+            Queue Status: {queueStatus.completedJobs} / {queueStatus.totalJobs} jobs completed
+          </div>
+        )}
         <div className="mt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-2 sm:space-y-0">
             <h2 className="text-2xl font-bold text-gray-900">Your Scraped Media</h2>
@@ -294,6 +323,7 @@ export default function Home() {
                 <span className="text-gray-900">
                   Page {currentPage} of {totalPages}
                 </span>
+                
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}

@@ -47,9 +47,9 @@ export const logout = async () => {
   await api.post('/auth/logout');
 }
 
-export const submitUrls = async (urls: string[]): Promise<ApiResponse<ScraperResponse[]>> => {
+export const submitUrls = async (urls: string[]): Promise<ApiResponse<{ message: string }>> => {
   try {
-    const response: ApiResponse<ScraperResponse[]> = await api.post('/scraper/urls', { urls });
+    const response: ApiResponse<{ message: string }> = await api.post('/scraper/urls', { urls });
     return response;
   } catch (error) {
     console.error('Submit URLs error:', error);
@@ -63,6 +63,16 @@ export const fetchMedias = async (): Promise<ApiResponse<ScraperResponse[]>> => 
     return response;
   } catch (error) {
     console.error('Fetch medias error:', error);
+    throw new Error('An unexpected error occurred');
+  }
+};
+
+export const checkQueueStatus = async (): Promise<ApiResponse<{ completedJobs: number, totalJobs: number }>> => {
+  try {
+    const response: ApiResponse<{ completedJobs: number, totalJobs: number }> = await api.get('/scraper/queue-status');
+    return response;
+  } catch (error) {
+    console.error('Check queue status error:', error);
     throw new Error('An unexpected error occurred');
   }
 };

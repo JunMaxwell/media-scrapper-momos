@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { ScraperModule } from './scraper/scraper.module';
 import { PrismaModule } from './common/services/prisma.module';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
@@ -18,6 +19,12 @@ import { PrismaModule } from './common/services/prisma.module';
     }]),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
     }),
     UserModule,
     AuthModule,

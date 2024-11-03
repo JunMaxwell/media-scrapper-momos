@@ -12,11 +12,8 @@ export class ScraperController {
   @Post('urls')
   async scrapeMediasFromUrls(@Body('urls') urls: string[], @Req() req: Request) {
     const user = req.user as AuthUser;
-    try {
-      return await this.scraperService.getMediasFromUrls(urls, user);
-    } catch (error) {
-      return new Error(error);
-    }
+    await this.scraperService.queueScrapingJobs(urls, user);
+    return { message: 'Scraping jobs queued' };
   }
 
   @UseGuards(AuthGuard('jwt'))
