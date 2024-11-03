@@ -71,7 +71,7 @@ Make sure to set up your environment variables in the appropriate `.env` files:
 - `backend/env/test.env` for testing
 
 ## 📋 Todo
-- [ ] Implement [BullMQ](https://docs.nestjs.com/techniques/queues) for background processing
+- [ ] Implement [BullMQ](https://docs.nestjs.com/techniques/queues) for background processing. Developing at branch `feature/patch-bull`
 - [ ] Implement rate limiting and caching
 - [ ] Add support for additional media types
 - [ ] Implement user roles and permissions
