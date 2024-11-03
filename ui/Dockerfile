@@ -1,51 +1,48 @@
 # Stage 1: Building the code
-FROM node:20-bullseye AS base
+FROM node:20-bullseye AS builder
 
-FROM base AS builder
-
-COPY . /ui
+COPY . /app/ui
 
 # Set the working directory
-WORKDIR /ui
+WORKDIR /app/ui
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the project
+RUN npm run build
+
+# Stage 2: Run the built code
+FROM node:20-bullseye-slim AS runner
+
+WORKDIR /app/ui
+
+# Set environment variables
+ENV NODE_ENV production
 
 # Install PM2 globally
 RUN npm install --global pm2
 
-# Copy root package.json and package-lock.json
-COPY package*.json ./
+# Copy necessary files from builder stage
+COPY --from=builder /app/ui/next.config.ts ./
+COPY --from=builder /app/ui/public ./public
+COPY --from=builder /app/ui/.next ./.next
+COPY --from=builder /app/ui/node_modules ./node_modules
+COPY --from=builder /app/ui/package.json ./package.json
 
-# Install dependencies
-RUN npm install
-
-# Build the project
-RUN npm run build --prefix ui
-
-COPY ui/package*.json ./
-COPY ui/next.config.ts ./
-COPY ui/public ./public
-COPY ui/.next ./.next
-COPY ui/node_modules ./node_modules
-
-# Stage 2: Run the built code
-FROM base AS runner
-
-WORKDIR /ui
-
-# Copy built assets from builder stage
-COPY --from=builder /ui/next.config.ts ./
-COPY --from=builder /ui/public ./public
-COPY --from=builder /ui/.next ./.next
-COPY --from=builder /ui/node_modules ./node_modules
-COPY --from=builder /ui/package.json ./package.json
-
-# Install production dependencies
-RUN npm install --omit=dev
-
-# Set environment variables
-ENV NODE_ENV production
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+USER nextjs
 
 # Expose the port Next.js runs on
 EXPOSE 3000
 
 # Launch app with PM2
-CMD [ "pm2-runtime", "start", "npm", "--", "run", "dev" ]
+CMD ["pm2-runtime", "npm", "--", "start"]

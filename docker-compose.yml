@@ -3,25 +3,32 @@ version: '3.8'
 services:
   ui:
     build:
-      context: .
-      dockerfile: ui/Dockerfile
+      context: ./ui
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    environment:
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=your_secret_key_here
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NODE_OPTIONS='--inspect'
     env_file:
       - ./ui/.env.development
+    command: ["pm2-runtime", "npm", "--", "start"]
     depends_on:
       - backend
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
     env_file:
       - ./backend/env/local.env
-    depends_on:
-      - db
+    volumes:
+      - ./backend/prisma:/app/backend/prisma
+    command: sh -c "npm run migrate:deploy:prod && npm run start:prod"
 
   db:
     image: postgres:15
