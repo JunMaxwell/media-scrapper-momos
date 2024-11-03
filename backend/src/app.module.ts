@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { MailSenderModule } from './mail-sender/mail-sender.module';
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
 import { AppController } from './app.controller';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -13,6 +14,9 @@ import { AppController } from './app.controller';
       ttl: 60000,
       limit: 50,
     }]),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     UserModule,
     AuthModule,
     MailSenderModule,

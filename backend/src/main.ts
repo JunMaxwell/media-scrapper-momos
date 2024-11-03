@@ -4,11 +4,13 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import * as requestIp from 'request-ip';
 import { AppModule } from './app.module';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   // CORS is enabled
   const app = await NestFactory.create(AppModule, { cors: true });
-
+  const configService = app.get(ConfigService);
+  const port = configService.get('PORT') || 8080;
   // Request Validation
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
@@ -16,7 +18,11 @@ async function bootstrap() {
 
   // Helmet Middleware against known security vulnerabilities
   app.use(helmet());
-
+  app.enableCors({
+    origin: configService.get('NEXTAUTH_URL'),
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+  });
   // Swagger API Documentation
   const options = new DocumentBuilder()
     .setTitle('NestJS Media scrapper Backend')
@@ -27,7 +33,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT || 3000, '127.0.0.1');
+  await app.listen(port || 8080, '127.0.0.1');
 }
 
 bootstrap();
