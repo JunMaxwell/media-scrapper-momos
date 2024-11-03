@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  frontend:
+  ui:
     build:
       context: .
       dockerfile: ui/Dockerfile
     ports:
       - "3000:3000"
     env_file:
-      - ./ui/.env.local
+      - ./ui/.env.development
     depends_on:
       - backend
 
