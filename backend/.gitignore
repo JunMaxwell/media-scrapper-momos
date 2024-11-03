@@ -38,4 +38,5 @@ lerna-debug.log*
 
 # misc
 .env
-.env/local.env
+.env/local.*
+local.env
