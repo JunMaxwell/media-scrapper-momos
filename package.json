@@ -1,0 +1,30 @@
+{
+  "name": "media-scrapper",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:ui": "cd ui && npm run dev",
+    "dev:be": "cd backend && npm run start:dev",
+    "build:ui": "cd ui && npm run build",
+    "build:be": "cd backend && npm run build",
+    "build:all": "npm run build:ui && npm run build:be",
+    "start:ui": "cd ui && npm run start",
+    "start:be": "cd backend && npm run start:dev",
+    "prisma:generate": "cd backend && npm run prisma:generate",
+    "prisma:studio": "cd backend && npm run prisma:studio",
+    "prisma:studio:dev": "cd backend && npm run prisma:studio:dev",
+    "migrate:dev": "cd backend && npm run migrate:dev",
+    "migrate:dev:create": "cd backend && npm run migrate:dev:create",
+    "migrate:dev:pull": "cd backend && npm run migrate:dev:pull",
+    "migrate:reset": "cd backend && npm run migrate:reset",
+    "migrate:deploy:prod": "cd backend && npm run migrate:deploy:prod",
+    "migrate:deploy:dev": "cd backend && npm run migrate:deploy:dev",
+    "migrate:status": "cd backend && npm run migrate:status",
+    "migrate:resolve": "cd backend && npm run migrate:resolve",
+    "seed:dev": "cd backend && npm run seed:dev",
+    "seed:prod": "cd backend && npm run seed:prod"
+  },
+  "dependencies": {
+    "husky": "^9.1.6"
+  }
+}
