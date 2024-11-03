@@ -52,4 +52,16 @@ model User {
   passwordReset     PasswordReset?
 
   @@map("user")
+  Media Media[]
+}
+
+model Media {
+  id    Int    @id @default(autoincrement())
+  type  String
+  src   String
+  url   String
+  userId Int  // Add userId field
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade) // Add relation to User
+
+  @@map("media")
 }

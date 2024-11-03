@@ -2,19 +2,23 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import puppeteer from 'puppeteer-core';
 import { ScraperResponse } from './models/scraper.response';
+import { PrismaService } from 'src/common/services/prisma.service';
+import { AuthUser } from 'src/auth/auth-user'; // Import AuthUser
 
 @Injectable()
 export class ScraperService {
     constructor(
         private readonly configService: ConfigService,
+        private prismaService: PrismaService,
     ) {}
 
     /**
      * Given an array of urls, scrape the media from each url
      * @param urls: Array of urls to scrape
+     * @param user: Authenticated user
      * @returns Scraper response array
      */
-    async getMediasFromUrls(urls: string[]): Promise<ScraperResponse[]> {
+    async getMediasFromUrls(urls: string[], user: AuthUser): Promise<ScraperResponse[]> {
         const browser = await puppeteer.connect({
             browserWSEndpoint: this.configService.get('WS_ENDPOINT'),
         })
@@ -48,6 +52,18 @@ export class ScraperService {
                         }
                     });
                 });
+
+                // Save scraped data to the database
+                for (const media of pageMedias) {
+                    await this.prismaService.media.create({
+                        data: {
+                            type: media.type,
+                            src: media.src,
+                            url: url,
+                            userId: user.id, // Associate media with the logged-in user
+                        },
+                    });
+                }
                 
                 allMedias.push(...pageMedias);
             }
