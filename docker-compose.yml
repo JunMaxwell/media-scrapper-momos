@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  ui-app:
+    image: node:20
+    build:
+      context: ./ui
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./ui/.env.local
+    command: ["npm", "start"]
+
+  backend-app:
+    image: node:20
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/env/local.env
+    command: ["npm", "run", "start:prod"]
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: media_scrapper
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
