@@ -35,10 +35,6 @@ A simple web scraping application that extracts media content from websites and 
    ```bash
     npm run docker:up
    ```
-3. **Seed the Database**
-   ```bash
-    npm run seed
-   ```
 
 ### 🛑 Stopping the Application
 - **To stop all services:** 

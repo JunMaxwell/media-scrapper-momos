@@ -26,7 +26,7 @@
     "migrate:dev:create": "dotenv -e env/local.env -- prisma migrate dev --create-only --preview-feature",
     "migrate:dev:pull": "dotenv -e env/local.env -- prisma db pull",
     "migrate:reset": "dotenv -e env/local.env -- prisma migrate reset --preview-feature",
-    "migrate:deploy:prod": "dotenv -e env/production.env -- npx prisma migrate deploy --preview-feature",
+    "migrate:deploy:prod": "dotenv -e env/production.env -- npx prisma migrate deploy --preview-feature && npx prisma db seed",
     "migrate:deploy:dev": "dotenv -e env/dev.env -- npx prisma migrate deploy --preview-feature",
     "migrate:status": "npx prisma migrate status --preview-feature",
     "migrate:resolve": "npx prisma migrate resolve --preview-feature",
@@ -35,9 +35,12 @@
     "prisma:generate": "npx prisma generate",
     "prisma:generate:watch": "npx prisma generate --watch",
     "seed:dev": "node --env-file=env/local.env -r ts-node/register ./prisma/seed.ts",
-    "seed:prod": "dotenv -e env/production.env -- ts-node -r tsconfig-paths/register ./prisma/seed.ts",
+    "seed:prod": "dotenv -e env/production.env -r ts-node/register ./prisma/seed.ts",
     "docker:build": "docker build -t backend-app .",
     "docker:run": "docker run -p 8080:8080 --env-file env/local.env backend-app"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
   },
   "lint-staged": {
     "*.{js,ts}": [
