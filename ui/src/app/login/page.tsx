@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Form, Input, Button, message } from 'antd'
@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  const onFinish = async (values: { identifier: string; password: string }) => {
+  const onFinish = useCallback(async (values: { identifier: string; password: string }) => {
     setLoading(true)
     try {
       const result = await signIn('credentials', {
@@ -31,11 +31,15 @@ export default function LoginPage() {
       }
     } catch (error) {
       console.error('Login error:', error)
-      message.error(error instanceof Error ? error.message : 'An unexpected error occurred')
+      if (error instanceof Error) {
+        message.error(error.message)
+      } else {
+        message.error('An unexpected error occurred')
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
