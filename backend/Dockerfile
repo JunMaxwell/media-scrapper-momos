@@ -40,10 +40,13 @@ COPY --from=builder /app/backend/node_modules ./node_modules
 COPY --from=builder /app/backend/dist ./dist
 COPY --from=builder /app/backend/prisma ./prisma
 
+# Install typescript and ts-node globally
+RUN npm install --save bcrypt nanoid
+
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-USER nextjs
+RUN adduser --system --uid 1001 nestjs
+USER nestjs
 
 # Expose the port the app runs on
 EXPOSE 8080

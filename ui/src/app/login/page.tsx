@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { useEffect, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Form, Input, Button, message } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
@@ -9,6 +9,7 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { data: session, status } = useSession()
 
   const onFinish = async (values: { identifier: string; password: string }) => {
     setLoading(true)
@@ -18,13 +19,14 @@ export default function LoginPage() {
         identifier: values.identifier,
         password: values.password,
       })
-
+  
       if (result?.error) {
         throw new Error(result.error)
       }
-
+  
       if (result?.ok) {
-        message.success('Login successful')
+        message.success('Login successful');
+        await new Promise(resolve => setTimeout(resolve, 1000))
         router.push('/')
       } else {
         throw new Error('Login failed')
@@ -36,6 +38,12 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/')
+    }
+  }, [status, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

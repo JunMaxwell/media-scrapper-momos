@@ -14,8 +14,6 @@ services:
       - NEXTAUTH_SECRET=your_secret_key_here
       - NEXT_PUBLIC_API_URL=http://backend:8080
       - NODE_OPTIONS='--inspect'
-    env_file:
-      - ./ui/.env.development
     command: ["pm2-runtime", "npm", "--", "start"]
     depends_on:
       - backend

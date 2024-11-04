@@ -31,16 +31,21 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1)
   const [queueStatus, setQueueStatus] = useState<{ completedJobs: number, totalJobs: number } | null>(null)
 
-useEffect(() => {
+  useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
     if (queueStatus && queueStatus.completedJobs < queueStatus.totalJobs) {
       intervalId = setInterval(checkQueue, QUEUE_CHECK_INTERVAL);
+      if (status === 'unauthenticated') {
+        router.push('/login')
+      } else if (status === 'authenticated') {
+        router.push('/')
+        fetchUserMedias()
+      }
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+      };
     }
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
   }, [queueStatus]);
 
   const checkQueue = async () => {
@@ -54,7 +59,7 @@ useEffect(() => {
       console.error('Failed to check queue status:', error);
     }
   };
-  
+
   const fetchUserMedias = async () => {
     setIsFetchingMedias(true)
     try {
@@ -202,9 +207,8 @@ useEffect(() => {
                   required
                   aria-invalid={errors[index] ? "true" : "false"}
                   aria-describedby={`url-error-${index}`}
-                  className={`flex h-10 w-full rounded-md border ${
-                    errors[index] ? 'border-red-500' : 'border-gray-300'
-                  } bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
+                  className={`flex h-10 w-full rounded-md border ${errors[index] ? 'border-red-500' : 'border-gray-300'
+                    } bg-transparent px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50`}
                 />
                 {urls.length > 1 && (
                   <button
@@ -323,7 +327,7 @@ useEffect(() => {
                 <span className="text-gray-900">
                   Page {currentPage} of {totalPages}
                 </span>
-                
+
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
