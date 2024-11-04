@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import puppeteer from 'puppeteer-core';
+import * as cheerio from 'cheerio';
+import axios from 'axios';
 import { ScraperResponse } from './models/scraper.response';
 import { PrismaService } from '../common/services/prisma.service';
 import { AuthUser } from '../auth/auth-user';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Job, Queue } from 'bullmq';
 
 @Injectable()
 export class ScraperService {
@@ -15,21 +16,31 @@ export class ScraperService {
         private prismaService: PrismaService,
     ) { }
 
+    get scraperQueues() {
+        return this.scraperQueue;
+    }
+
     /**
      * Queue scraping jobs for an array of urls
      * @param urls: Array of urls to scrape
      * @param user: Authenticated user
      */
-    async queueScrapingJobs(urls: string[], user: AuthUser): Promise<void> {
-        for (const url of urls) {
-            await this.scraperQueue.add('scrape', { url, userId: user.id }, {
+    async queueScrapingJobs(urls: string[], user: AuthUser): Promise<Job[]> {
+        const batchSize = 100;
+        const jobs: Array<Job<any, any, string>> = [];
+        Logger.debug(`Queueing scraping jobs for ${urls.length} URLs`);
+        for (let i = 0; i < urls.length; i += batchSize) {
+            const batch = urls.slice(i, i + batchSize);
+            const job = await this.scraperQueue.add('scrape', { urls: batch, userId: user.id }, {
                 attempts: 3,
                 backoff: {
                     type: 'exponential',
                     delay: 1000,
                 },
             });
+            jobs.push(job);
         }
+        return jobs;
     }
 
     /**
@@ -39,47 +50,26 @@ export class ScraperService {
      * @returns Scraper response array
      */
     async scrapeUrl(url: string, userId: number): Promise<ScraperResponse[]> {
-        const browser = await puppeteer.connect({
-            browserWSEndpoint: this.configService.get('WS_ENDPOINT'),
-        });
-
         try {
-            const page = await browser.newPage();
-            page.setDefaultNavigationTimeout(2 * 60 * 1000);
+            const { data } = await axios.get(url);
+            const $ = cheerio.load(data);
+            const pageMedias: ScraperResponse[] = [];
 
-            await page.goto(url, { waitUntil: 'domcontentloaded' });
-
-            const pageMedias: ScraperResponse[] = await page.evaluate(() => {
-                const elements = Array.from(document.querySelectorAll('img, video'));
-                return elements.map((element) => {
-                    if (element instanceof HTMLImageElement) {
-                        return {
-                            type: 'image',
-                            src: element.src,
-                        };
-                    } else if (element instanceof HTMLVideoElement) {
-                        return {
-                            type: 'video',
-                            src: element.src,
-                        };
-                    } else {
-                        return {
-                            type: 'unknown',
-                            src: '',
-                        };
-                    }
-                });
+            $('img, video').each((_, element) => {
+                const src = $(element).attr('src');
+                if (src) {
+                    pageMedias.push({
+                        type: element.name === 'img' ? 'image' : 'video',
+                        src: src,
+                    });
+                }
             });
 
-            // Save scraped data to the database
             await this.saveBatchMedias(pageMedias, url, userId);
-
             return pageMedias;
         } catch (error) {
             Logger.error(`Error scraping ${url}: ${error.message}`);
             throw error;
-        } finally {
-            await browser.close();
         }
     }
 

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ScraperService } from './scraper.service';
 import { ScraperController } from './scraper.controller';
 import { PrismaModule } from '../common/services/prisma.module';
-import { BullModule } from '@nestjs/bull';
+import { BullModule } from '@nestjs/bullmq';
 import { ScraperProcessor } from './scraper.processor';
 
 @Module({
@@ -10,6 +10,7 @@ import { ScraperProcessor } from './scraper.processor';
     PrismaModule,
     BullModule.registerQueue({
       name: 'scraper-queue',
+      prefix: 'scraper',
     }),
   ],
   controllers: [ScraperController],
