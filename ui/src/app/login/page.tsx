@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { signIn } from 'next-auth/react'
+import { useEffect, useState } from 'react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Form, Input, Button, message } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
@@ -9,8 +9,9 @@ import { UserOutlined, LockOutlined } from '@ant-design/icons'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { data: session, status } = useSession()
 
-  const onFinish = useCallback(async (values: { identifier: string; password: string }) => {
+  const onFinish = async (values: { identifier: string; password: string }) => {
     setLoading(true)
     try {
       const result = await signIn('credentials', {
@@ -18,28 +19,31 @@ export default function LoginPage() {
         identifier: values.identifier,
         password: values.password,
       })
-
+  
       if (result?.error) {
         throw new Error(result.error)
       }
-
+  
       if (result?.ok) {
-        message.success('Login successful')
+        message.success('Login successful');
+        await new Promise(resolve => setTimeout(resolve, 1000))
         router.push('/')
       } else {
         throw new Error('Login failed')
       }
     } catch (error) {
       console.error('Login error:', error)
-      if (error instanceof Error) {
-        message.error(error.message)
-      } else {
-        message.error('An unexpected error occurred')
-      }
+      message.error(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }
-  }, [router])
+  }
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/')
+    }
+  }, [status, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
