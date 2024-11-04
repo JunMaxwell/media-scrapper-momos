@@ -30,29 +30,37 @@ export default function Home() {
   const [searchText, setSearchText] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [queueStatus, setQueueStatus] = useState<{ completedJobs: number, totalJobs: number } | null>(null)
+  const [isScrapingComplete, setIsScrapingComplete] = useState(true)
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
     if (queueStatus && queueStatus.completedJobs < queueStatus.totalJobs) {
+      setIsScrapingComplete(false);
       intervalId = setInterval(checkQueue, QUEUE_CHECK_INTERVAL);
-      if (status === 'unauthenticated') {
-        router.push('/login')
-      } else if (status === 'authenticated') {
-        router.push('/')
-        fetchUserMedias()
-      }
-      return () => {
-        if (intervalId) clearInterval(intervalId);
-      };
+    } else if (queueStatus && queueStatus.completedJobs === queueStatus.totalJobs) {
+      setIsScrapingComplete(true);
+      fetchUserMedias();
     }
-  }, [queueStatus]);
+
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    } else if (status === 'authenticated') {
+      router.push('/')
+      fetchUserMedias()
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [queueStatus, status]);
 
   const checkQueue = async () => {
     try {
       const status = await checkQueueStatus();
       setQueueStatus(status.data);
       if (status.data.completedJobs === status.data.totalJobs) {
+        setIsScrapingComplete(true);
         fetchUserMedias();
       }
     } catch (error) {
@@ -252,11 +260,21 @@ export default function Home() {
             {submitResult}
           </div>
         )}
-        {queueStatus && (
+        {!isScrapingComplete && queueStatus && (
           <div className="mt-4 p-4 rounded-md bg-blue-100 text-blue-700">
-            Queue Status: {queueStatus.completedJobs} / {queueStatus.totalJobs} jobs completed
+            <div className="flex items-center justify-between">
+              <span>Scraping in progress...</span>
+              <span>{queueStatus.completedJobs} / {queueStatus.totalJobs} jobs completed</span>
+            </div>
+            <div className="mt-2 w-full bg-blue-200 rounded-full h-2.5">
+              <div 
+                className="bg-blue-600 h-2.5 rounded-full" 
+                style={{ width: `${(queueStatus.completedJobs / queueStatus.totalJobs) * 100}%` }}
+              ></div>
+            </div>
           </div>
         )}
+        {isScrapingComplete && (
         <div className="mt-8">
           <div className="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-2 sm:space-y-0">
             <h2 className="text-2xl font-bold text-gray-900">Your Scraped Media</h2>
@@ -342,6 +360,7 @@ export default function Home() {
             <div className="text-center text-gray-500">No media found. Try adjusting your filters or submitting some URLs!</div>
           )}
         </div>
+      )}  
       </div>
     </main>
   )

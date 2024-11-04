@@ -61,7 +61,7 @@ services:
     expose:
       - 6379
     ports:
-      - 6379:6379 # Public port để lát nữa test multiple worker
+      - 6379:6379
     restart: unless-stopped
   flash_cards_redis_commander:
     container_name: flash_cards_redis_commander

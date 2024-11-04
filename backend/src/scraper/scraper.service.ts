@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as cheerio from 'cheerio';
-import axios from 'axios';
+import * as puppeteer from 'puppeteer-core';
 import { ScraperResponse } from './models/scraper.response';
 import { PrismaService } from '../common/services/prisma.service';
 import { AuthUser } from '../auth/auth-user';
@@ -51,19 +50,35 @@ export class ScraperService {
      */
     async scrapeUrl(url: string, userId: number): Promise<ScraperResponse[]> {
         try {
-            const { data } = await axios.get(url);
-            const $ = cheerio.load(data);
-            const pageMedias: ScraperResponse[] = [];
-
-            $('img, video').each((_, element) => {
-                const src = $(element).attr('src');
-                if (src) {
-                    pageMedias.push({
-                        type: element.name === 'img' ? 'image' : 'video',
-                        src: src,
-                    });
-                }
+            const browser = await puppeteer.connect({
+                browserWSEndpoint: this.configService.get('WS_ENDPOINT'),
             });
+            const page = await browser.newPage();
+            await page.goto(url, { waitUntil: 'domcontentloaded' });
+
+            const pageMedias: ScraperResponse[] = await page.evaluate(() => {
+                const medias: ScraperResponse[] = [];
+                const images = document.querySelectorAll('img');
+                const videos = document.querySelectorAll('video');
+
+                images.forEach((img) => {
+                    const src = img.src;
+                    if (src) {
+                        medias.push({ type: 'image', src });
+                    }
+                });
+
+                videos.forEach((video) => {
+                    const src = video.src;
+                    if (src) {
+                        medias.push({ type: 'video', src });
+                    }
+                });
+
+                return medias;
+            });
+
+            await browser.close();
 
             await this.saveBatchMedias(pageMedias, url, userId);
             return pageMedias;
@@ -79,8 +94,9 @@ export class ScraperService {
      * @param url: URL of the scraped page
      * @param userId: ID of the authenticated user
      */
-    async saveBatchMedias(medias: ScraperResponse[], url: string, userId: number): Promise<void> {
-        await this.prismaService.media.createMany({
+    async saveBatchMedias(medias: ScraperResponse[], url: string, userId: number) {
+        Logger.debug(`Saving ${medias.length} medias for URL: ${url}`);
+        return await this.prismaService.media.createMany({
             data: medias.map(media => ({
                 type: media.type,
                 src: media.src,
