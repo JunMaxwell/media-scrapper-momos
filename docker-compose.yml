@@ -30,7 +30,7 @@ services:
       - ./backend/env/production.env
     volumes:
       - ./backend/prisma:/app/backend/prisma
-    command: sh -c "npm run migrate:deploy:prod && npm run start:prod"
+    command: sh -c "npm run migrate:reset:hard && npm run start:prod"
 
   db:
     image: postgres:15
